@@ -4,15 +4,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 import app.models  # noqa: F401 — ensures all models are registered with Base
 from app.routes import auth, groomers, bookings
+from app.core.config import settings
 
 app = FastAPI(title="ThePetCompany API", version="0.1.0")
 
-# Allow the HTML frontend (opened as a local file or any origin) to call the API
+# Only allow explicitly configured origins — never wildcard in production.
+# Set ALLOWED_ORIGINS in .env to match your frontend domain(s).
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 app.include_router(auth.router)

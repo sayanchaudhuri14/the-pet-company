@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -16,10 +18,12 @@ from app.services.auth import hash_password, verify_password, create_access_toke
 from app.core.dependencies import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/register/customer", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def register_customer(payload: RegisterCustomer, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def register_customer(request: Request, payload: RegisterCustomer, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == payload.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
 
@@ -43,7 +47,8 @@ def register_customer(payload: RegisterCustomer, db: Session = Depends(get_db)):
 
 
 @router.post("/register/groomer", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def register_groomer(payload: RegisterGroomer, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def register_groomer(request: Request, payload: RegisterGroomer, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == payload.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
 
@@ -74,7 +79,8 @@ def register_groomer(payload: RegisterGroomer, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(payload: LoginRequest, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == payload.email).first()
 
     if not user or not verify_password(payload.password, user.hashed_password):

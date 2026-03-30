@@ -18,6 +18,7 @@ os.environ.setdefault("SECRET_KEY", "test-secret-key-for-pytest-only-not-for-pro
 
 from app.main import app  # noqa: E402 — must come after env var is set
 from app.database import Base, get_db  # noqa: E402
+from app.core.limiter import limiter  # noqa: E402 — shared singleton, reset per test
 
 TEST_DATABASE_URL = "sqlite:///:memory:"
 
@@ -56,6 +57,10 @@ def client(db_session):
         yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
+    # Reset rate limiter state so each test starts with a clean counter.
+    # Without this, tests that hit rate-limited endpoints accumulate counts
+    # across tests and cause fixture setup (register/login) to get 429s.
+    limiter.reset()
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()

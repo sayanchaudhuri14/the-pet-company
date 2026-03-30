@@ -1,3 +1,5 @@
+import re
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -31,8 +33,14 @@ def list_groomers(
     query = db.query(GroomerProfile).filter(GroomerProfile.is_active == True)  # noqa: E712
 
     if pet_type:
-        # JSON_CONTAINS / LIKE — SQLite stores JSON as text, so we use LIKE
-        query = query.filter(GroomerProfile.pets_supported.like(f'%"{pet_type}"%'))
+        # Strip everything except word chars and hyphens before using in LIKE.
+        # SQLAlchemy parameterises the value (preventing classical SQL injection),
+        # but unsanitised input can still inject SQL LIKE wildcards (% _) that
+        # cause unintended full-table scans or logic bypass.
+        sanitized_pet = re.sub(r"[^\w-]", "", pet_type)
+        if not sanitized_pet:
+            raise HTTPException(status_code=400, detail="Invalid pet_type value")
+        query = query.filter(GroomerProfile.pets_supported.like(f'%"{sanitized_pet}"%'))
 
     if max_price is not None:
         query = query.filter(GroomerProfile.price_min <= max_price)

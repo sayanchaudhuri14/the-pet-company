@@ -38,6 +38,12 @@ def create_booking(
     if groomer.user_id == current_user.id:
         raise HTTPException(status_code=400, detail="Cannot book yourself")
 
+    # Validate the requested pet and service are in the groomer's offerings
+    if payload.pet_type not in groomer.pets_supported:
+        raise HTTPException(status_code=400, detail="Groomer does not support this pet type")
+    if payload.service not in groomer.services:
+        raise HTTPException(status_code=400, detail="Groomer does not offer this service")
+
     booking = Booking(
         customer_id=customer.id,
         groomer_id=groomer.id,

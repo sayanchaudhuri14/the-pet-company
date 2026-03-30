@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel, field_validator
 from app.models.booking import BookingStatus
 
@@ -13,7 +13,9 @@ class BookingCreate(BaseModel):
     @field_validator("scheduled_at")
     @classmethod
     def must_be_future(cls, v: datetime) -> datetime:
-        if v <= datetime.utcnow():
+        # Make v timezone-aware for comparison (if client sends naive datetime, assume UTC)
+        v_utc = v.replace(tzinfo=timezone.utc) if v.tzinfo is None else v
+        if v_utc <= datetime.now(timezone.utc):
             raise ValueError("scheduled_at must be a future date/time")
         return v
 

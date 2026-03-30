@@ -1,3 +1,14 @@
+# Project-specific
+*.db
+*.db-shm
+*.db-wal
+.env
+.env.*
+!.env.example
+
+# Claude memory (local only)
+.claude/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

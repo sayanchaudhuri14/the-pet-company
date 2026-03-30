@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ThePetCompany</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f5f7fa;
+      color: #222;
+      min-height: 100vh;
+    }
+
+    /* ── Nav ── */
+    nav {
+      background: #1a7f64;
+      color: white;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+    }
+    nav .logo { font-weight: 700; font-size: 1.2rem; letter-spacing: .5px; }
+    nav .nav-links { display: flex; gap: 1rem; }
+    nav button {
+      background: none; border: none; color: white;
+      font-size: .95rem; cursor: pointer; padding: .4rem .8rem;
+      border-radius: 6px; transition: background .2s;
+    }
+    nav button:hover, nav button.active { background: rgba(255,255,255,.18); }
+    #nav-logout { background: rgba(255,255,255,.12); }
+
+    /* ── Page container ── */
+    .page { display: none; max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+    .page.active { display: block; }
+
+    /* ── Cards / panels ── */
+    .card {
+      background: white; border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08); padding: 2rem;
+    }
+
+    h2 { margin-bottom: 1.2rem; font-size: 1.4rem; }
+    h3 { margin-bottom: .8rem; font-size: 1.1rem; }
+
+    /* ── Forms ── */
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: .3rem; color: #555; }
+    input, select {
+      width: 100%; padding: .55rem .75rem; border: 1px solid #d1d5db;
+      border-radius: 8px; font-size: .95rem; outline: none;
+      transition: border-color .2s;
+    }
+    input:focus, select:focus { border-color: #1a7f64; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-block; padding: .6rem 1.4rem; border: none;
+      border-radius: 8px; font-size: .95rem; font-weight: 600;
+      cursor: pointer; transition: opacity .2s;
+    }
+    .btn:hover { opacity: .88; }
+    .btn-primary { background: #1a7f64; color: white; }
+    .btn-sm { padding: .35rem .9rem; font-size: .85rem; }
+    .btn-accept { background: #22c55e; color: white; }
+    .btn-reject { background: #ef4444; color: white; }
+    .btn-book   { background: #1a7f64; color: white; }
+    .btn-full   { width: 100%; }
+
+    /* ── Tabs ── */
+    .tabs { display: flex; gap: .5rem; margin-bottom: 1.5rem; }
+    .tab {
+      padding: .45rem 1.1rem; border-radius: 8px; cursor: pointer;
+      border: 1px solid #d1d5db; background: white; font-size: .9rem;
+      transition: all .2s;
+    }
+    .tab.active { background: #1a7f64; color: white; border-color: #1a7f64; }
+
+    /* ── Auth page center ── */
+    #page-auth { max-width: 460px; }
+
+    /* ── Filters ── */
+    .filters {
+      background: white; border-radius: 12px; padding: 1.2rem 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.07);
+      display: flex; flex-wrap: wrap; gap: 1rem;
+      align-items: flex-end; margin-bottom: 1.5rem;
+    }
+    .filters .form-group { margin: 0; min-width: 140px; }
+
+    /* ── Groomer grid ── */
+    .groomer-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.2rem;
+    }
+    .groomer-card {
+      background: white; border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+      padding: 1.3rem; display: flex; flex-direction: column; gap: .5rem;
+    }
+    .groomer-card h3 { margin: 0; }
+    .groomer-card .badge {
+      display: inline-block; font-size: .75rem; font-weight: 600;
+      padding: .2rem .6rem; border-radius: 20px; background: #e6f4f1; color: #1a7f64;
+    }
+    .groomer-card .meta { font-size: .85rem; color: #666; }
+    .groomer-card .price { font-size: 1.05rem; font-weight: 700; color: #1a7f64; }
+    .groomer-card .tags { display: flex; flex-wrap: wrap; gap: .35rem; }
+    .groomer-card .tag {
+      background: #f0fdf4; border: 1px solid #bbf7d0;
+      color: #166534; font-size: .75rem; padding: .15rem .5rem; border-radius: 20px;
+    }
+    .spacer { flex: 1; }
+
+    /* ── Bookings table ── */
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    th { text-align: left; padding: .7rem 1rem; background: #f9fafb; color: #555; font-size: .8rem; text-transform: uppercase; letter-spacing: .5px; }
+    td { padding: .75rem 1rem; border-bottom: 1px solid #f3f4f6; }
+    tr:last-child td { border-bottom: none; }
+
+    .status-badge {
+      display: inline-block; padding: .2rem .65rem; border-radius: 20px;
+      font-size: .8rem; font-weight: 600;
+    }
+    .status-pending  { background: #fef9c3; color: #854d0e; }
+    .status-accepted { background: #dcfce7; color: #166534; }
+    .status-rejected { background: #fee2e2; color: #991b1b; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.4); z-index: 100;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: white; border-radius: 14px; padding: 2rem;
+      width: 100%; max-width: 420px; box-shadow: 0 8px 32px rgba(0,0,0,.18);
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; }
+    .modal-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #888; }
+
+    /* ── Alerts ── */
+    .alert {
+      padding: .7rem 1rem; border-radius: 8px; margin-bottom: 1rem;
+      font-size: .9rem; display: none;
+    }
+    .alert.show { display: block; }
+    .alert-error { background: #fee2e2; color: #991b1b; }
+    .alert-success { background: #dcfce7; color: #166534; }
+
+    .empty { text-align: center; padding: 3rem; color: #999; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ NAV ══════════════ -->
+<nav id="navbar" style="display:none">
+  <span class="logo">🐾 ThePetCompany</span>
+  <div class="nav-links">
+    <button id="nav-groomers" onclick="showPage('groomers')">Find Groomers</button>
+    <button id="nav-bookings" onclick="showPage('bookings')">My Bookings</button>
+    <button id="nav-logout" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<!-- ══════════════ AUTH PAGE ══════════════ -->
+<div id="page-auth" class="page active" style="padding-top:3rem">
+  <div class="card">
+    <h2 style="text-align:center; margin-bottom:.4rem">🐾 ThePetCompany</h2>
+    <p style="text-align:center; color:#888; margin-bottom:1.5rem; font-size:.9rem">Pet grooming, simplified.</p>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchAuthTab('login')">Login</div>
+      <div class="tab" onclick="switchAuthTab('register-customer')">Register (Customer)</div>
+      <div class="tab" onclick="switchAuthTab('register-groomer')">Register (Groomer)</div>
+    </div>
+
+    <div id="alert-auth" class="alert"></div>
+
+    <!-- Login -->
+    <div id="tab-login">
+      <div class="form-group"><label>Email</label><input id="login-email" type="email" placeholder="you@example.com" /></div>
+      <div class="form-group"><label>Password</label><input id="login-password" type="password" placeholder="••••••" /></div>
+      <button class="btn btn-primary btn-full" onclick="doLogin()">Login</button>
+    </div>
+
+    <!-- Register Customer -->
+    <div id="tab-register-customer" style="display:none">
+      <div class="row">
+        <div class="form-group"><label>Name</label><input id="rc-name" placeholder="Your name" /></div>
+        <div class="form-group"><label>Phone</label><input id="rc-phone" placeholder="Optional" /></div>
+      </div>
+      <div class="form-group"><label>Email</label><input id="rc-email" type="email" placeholder="you@example.com" /></div>
+      <div class="form-group"><label>Password</label><input id="rc-password" type="password" placeholder="Min 6 characters" /></div>
+      <button class="btn btn-primary btn-full" onclick="doRegisterCustomer()">Create Account</button>
+    </div>
+
+    <!-- Register Groomer -->
+    <div id="tab-register-groomer" style="display:none">
+      <div class="row">
+        <div class="form-group"><label>Business Name</label><input id="rg-name" placeholder="Happy Paws Studio" /></div>
+        <div class="form-group"><label>Phone</label><input id="rg-phone" placeholder="Your number" /></div>
+      </div>
+      <div class="row">
+        <div class="form-group"><label>Email</label><input id="rg-email" type="email" placeholder="you@example.com" /></div>
+        <div class="form-group"><label>Password</label><input id="rg-password" type="password" placeholder="Min 6 characters" /></div>
+      </div>
+      <div class="row">
+        <div class="form-group"><label>City</label><input id="rg-city" placeholder="Bangalore" /></div>
+        <div class="form-group"><label>Type</label>
+          <select id="rg-type"><option value="freelancer">Freelancer</option><option value="company">Company</option></select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="form-group"><label>Min Price (₹)</label><input id="rg-price-min" type="number" placeholder="300" /></div>
+        <div class="form-group"><label>Max Price (₹)</label><input id="rg-price-max" type="number" placeholder="800" /></div>
+      </div>
+      <div class="row">
+        <div class="form-group"><label>Experience (years)</label><input id="rg-experience" type="number" placeholder="3" /></div>
+        <div class="form-group"><label>Pets Supported</label><input id="rg-pets" placeholder="dog, cat" /></div>
+      </div>
+      <div class="form-group"><label>Services Offered</label><input id="rg-services" placeholder="bath, haircut, nail trim" /></div>
+      <button class="btn btn-primary btn-full" onclick="doRegisterGroomer()">Register as Groomer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ GROOMERS PAGE ══════════════ -->
+<div id="page-groomers" class="page">
+  <h2>Find a Groomer</h2>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="form-group">
+      <label>Pet Type</label>
+      <select id="f-pet">
+        <option value="">All Pets</option>
+        <option value="dog">Dog</option>
+        <option value="cat">Cat</option>
+        <option value="rabbit">Rabbit</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Max Price (₹)</label>
+      <input id="f-price" type="number" placeholder="Any" style="width:130px" />
+    </div>
+    <div class="form-group">
+      <label>Min Experience (yrs)</label>
+      <input id="f-exp" type="number" placeholder="Any" style="width:130px" />
+    </div>
+    <div class="form-group">
+      <label>Sort By</label>
+      <select id="f-sort">
+        <option value="price">Price: Low to High</option>
+        <option value="experience">Experience: High to Low</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="loadGroomers()">Search</button>
+  </div>
+
+  <div id="groomers-grid" class="groomer-grid"></div>
+</div>
+
+<!-- ══════════════ BOOKINGS PAGE ══════════════ -->
+<div id="page-bookings" class="page">
+  <h2>My Bookings</h2>
+  <div class="card" style="padding:0; overflow:hidden">
+    <div id="bookings-table-wrap">
+      <p class="empty">Loading...</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ BOOKING MODAL ══════════════ -->
+<div id="booking-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Book a Groomer</h3>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div id="alert-modal" class="alert"></div>
+    <div class="form-group">
+      <label>Pet Type</label>
+      <select id="b-pet">
+        <option value="dog">Dog</option>
+        <option value="cat">Cat</option>
+        <option value="rabbit">Rabbit</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Service</label>
+      <select id="b-service">
+        <option value="bath">Bath</option>
+        <option value="haircut">Haircut</option>
+        <option value="nail trim">Nail Trim</option>
+        <option value="full grooming">Full Grooming</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Date &amp; Time</label>
+      <input id="b-datetime" type="datetime-local" />
+    </div>
+    <button class="btn btn-primary btn-full" onclick="submitBooking()">Confirm Booking</button>
+  </div>
+</div>
+
+<!-- ══════════════ SCRIPT ══════════════ -->
+<script>
+  const API = 'http://localhost:8000';
+  let currentGroomerId = null;
+
+  // ── Token helpers ──────────────────────────────────────────────────────────
+  const getToken = () => localStorage.getItem('token');
+  const getRole  = () => localStorage.getItem('role');
+
+  function authHeaders() {
+    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` };
+  }
+
+  async function apiFetch(path, options = {}) {
+    const res = await fetch(API + path, {
+      headers: options.auth === false
+        ? { 'Content-Type': 'application/json' }
+        : authHeaders(),
+      ...options,
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  // ── Navigation ─────────────────────────────────────────────────────────────
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    document.querySelectorAll('nav button[id^="nav-"]').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('nav-' + name);
+    if (btn) btn.classList.add('active');
+    if (name === 'groomers') loadGroomers();
+    if (name === 'bookings') loadBookings();
+  }
+
+  function logout() {
+    localStorage.clear();
+    document.getElementById('navbar').style.display = 'none';
+    showPage('auth');
+  }
+
+  // ── Auth tab switching ─────────────────────────────────────────────────────
+  function switchAuthTab(tab) {
+    ['login', 'register-customer', 'register-groomer'].forEach(t => {
+      document.getElementById('tab-' + t).style.display = t === tab ? '' : 'none';
+    });
+    document.querySelectorAll('.tabs .tab').forEach((el, i) => {
+      el.classList.toggle('active', ['login','register-customer','register-groomer'][i] === tab);
+    });
+    hideAlert('auth');
+  }
+
+  // ── Alert helpers ──────────────────────────────────────────────────────────
+  function showAlert(zone, msg, type = 'error') {
+    const el = document.getElementById('alert-' + zone);
+    el.textContent = msg;
+    el.className = `alert show alert-${type}`;
+  }
+  function hideAlert(zone) {
+    const el = document.getElementById('alert-' + zone);
+    if (el) el.className = 'alert';
+  }
+
+  // ── Login ──────────────────────────────────────────────────────────────────
+  async function doLogin() {
+    const email    = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const { ok, data } = await apiFetch('/auth/login', {
+      method: 'POST', auth: false,
+      body: JSON.stringify({ email, password }),
+    });
+    if (!ok) return showAlert('auth', data.detail || 'Login failed');
+
+    localStorage.setItem('token', data.access_token);
+
+    // Fetch role
+    const me = await apiFetch('/auth/me');
+    localStorage.setItem('role', me.data.role);
+
+    document.getElementById('navbar').style.display = 'flex';
+    showPage('groomers');
+  }
+
+  // ── Register Customer ──────────────────────────────────────────────────────
+  async function doRegisterCustomer() {
+    const payload = {
+      email:    document.getElementById('rc-email').value.trim(),
+      password: document.getElementById('rc-password').value,
+      name:     document.getElementById('rc-name').value.trim(),
+      phone:    document.getElementById('rc-phone').value.trim() || null,
+    };
+    const { ok, data } = await apiFetch('/auth/register/customer', {
+      method: 'POST', auth: false, body: JSON.stringify(payload),
+    });
+    if (!ok) return showAlert('auth', data.detail || 'Registration failed');
+    showAlert('auth', 'Account created! Please log in.', 'success');
+    switchAuthTab('login');
+  }
+
+  // ── Register Groomer ───────────────────────────────────────────────────────
+  async function doRegisterGroomer() {
+    const csvToList = id => document.getElementById(id).value.split(',').map(s => s.trim()).filter(Boolean);
+    const payload = {
+      email:            document.getElementById('rg-email').value.trim(),
+      password:         document.getElementById('rg-password').value,
+      name:             document.getElementById('rg-name').value.trim(),
+      phone:            document.getElementById('rg-phone').value.trim(),
+      city:             document.getElementById('rg-city').value.trim(),
+      groomer_type:     document.getElementById('rg-type').value,
+      price_min:        parseInt(document.getElementById('rg-price-min').value) || 0,
+      price_max:        parseInt(document.getElementById('rg-price-max').value) || 0,
+      experience_years: parseInt(document.getElementById('rg-experience').value) || 0,
+      pets_supported:   csvToList('rg-pets'),
+      services:         csvToList('rg-services'),
+    };
+    const { ok, data } = await apiFetch('/auth/register/groomer', {
+      method: 'POST', auth: false, body: JSON.stringify(payload),
+    });
+    if (!ok) return showAlert('auth', data.detail || 'Registration failed');
+    showAlert('auth', 'Groomer account created! Please log in.', 'success');
+    switchAuthTab('login');
+  }
+
+  // ── Load Groomers ──────────────────────────────────────────────────────────
+  async function loadGroomers() {
+    const pet     = document.getElementById('f-pet').value;
+    const price   = document.getElementById('f-price').value;
+    const exp     = document.getElementById('f-exp').value;
+    const sort    = document.getElementById('f-sort').value;
+
+    const params = new URLSearchParams({ sort_by: sort });
+    if (pet)   params.set('pet_type', pet);
+    if (price) params.set('max_price', price);
+    if (exp)   params.set('min_experience', exp);
+
+    const { ok, data } = await apiFetch('/groomers?' + params, { auth: false });
+    const grid = document.getElementById('groomers-grid');
+
+    if (!ok || !data.length) {
+      grid.innerHTML = '<p class="empty">No groomers found matching your filters.</p>';
+      return;
+    }
+
+    grid.innerHTML = data.map(g => `
+      <div class="groomer-card">
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <h3>${g.name}</h3>
+          <span class="badge">${g.groomer_type}</span>
+        </div>
+        <div class="meta">📍 ${g.city} &nbsp;·&nbsp; ⭐ ${g.experience_years} yrs exp</div>
+        <div class="price">₹${g.price_min} – ₹${g.price_max}</div>
+        <div class="tags">
+          ${g.pets_supported.map(p => `<span class="tag">${p}</span>`).join('')}
+          ${g.services.map(s => `<span class="tag" style="background:#eff6ff;border-color:#bfdbfe;color:#1e40af">${s}</span>`).join('')}
+        </div>
+        <div class="spacer"></div>
+        ${getRole() === 'customer'
+          ? `<button class="btn btn-book btn-sm" style="margin-top:.7rem" onclick="openBookingModal(${g.id}, '${g.name}')">Book Now</button>`
+          : ''}
+      </div>
+    `).join('');
+  }
+
+  // ── Booking Modal ──────────────────────────────────────────────────────────
+  function openBookingModal(groomerId, groomerName) {
+    currentGroomerId = groomerId;
+    document.getElementById('modal-title').textContent = `Book: ${groomerName}`;
+    // Default to tomorrow at 10am
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(10, 0, 0, 0);
+    document.getElementById('b-datetime').value = tomorrow.toISOString().slice(0, 16);
+    hideAlert('modal');
+    document.getElementById('booking-modal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('booking-modal').classList.remove('open');
+    currentGroomerId = null;
+  }
+
+  async function submitBooking() {
+    const scheduledAt = new Date(document.getElementById('b-datetime').value).toISOString();
+    const payload = {
+      groomer_id:   currentGroomerId,
+      pet_type:     document.getElementById('b-pet').value,
+      service:      document.getElementById('b-service').value,
+      scheduled_at: scheduledAt,
+    };
+    const { ok, data } = await apiFetch('/bookings', {
+      method: 'POST', body: JSON.stringify(payload),
+    });
+    if (!ok) return showAlert('modal', data.detail || 'Booking failed');
+    closeModal();
+    showPage('bookings');
+  }
+
+  // ── Load Bookings ──────────────────────────────────────────────────────────
+  async function loadBookings() {
+    const { ok, data } = await apiFetch('/bookings/mine');
+    const wrap = document.getElementById('bookings-table-wrap');
+
+    if (!ok || !data.length) {
+      wrap.innerHTML = '<p class="empty">No bookings yet.</p>';
+      return;
+    }
+
+    const isGroomer = getRole() === 'groomer';
+    const rows = data.map(b => `
+      <tr>
+        <td>#${b.id}</td>
+        <td>${b.pet_type}</td>
+        <td>${b.service}</td>
+        <td>${new Date(b.scheduled_at).toLocaleString('en-IN', { dateStyle:'medium', timeStyle:'short' })}</td>
+        <td><span class="status-badge status-${b.status}">${b.status}</span></td>
+        ${isGroomer && b.status === 'pending' ? `
+          <td style="display:flex;gap:.4rem">
+            <button class="btn btn-accept btn-sm" onclick="updateStatus(${b.id},'accepted')">Accept</button>
+            <button class="btn btn-reject btn-sm" onclick="updateStatus(${b.id},'rejected')">Reject</button>
+          </td>` : '<td></td>'}
+      </tr>
+    `).join('');
+
+    wrap.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Pet</th><th>Service</th><th>Scheduled</th><th>Status</th>
+            <th>${isGroomer ? 'Action' : ''}</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  async function updateStatus(bookingId, status) {
+    const { ok, data } = await apiFetch(`/bookings/${bookingId}/status`, {
+      method: 'PATCH', body: JSON.stringify({ status }),
+    });
+    if (!ok) return alert(data.detail || 'Failed to update');
+    loadBookings();
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  if (getToken()) {
+    document.getElementById('navbar').style.display = 'flex';
+    showPage('groomers');
+  }
+</script>
+</body>
+</html>

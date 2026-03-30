@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from app.models.user import UserRole
 
 
@@ -22,12 +22,12 @@ class RegisterGroomer(BaseModel):
     name: str
     phone: str
     city: str
-    groomer_type: str          # "freelancer" or "company"
-    services: list[str]        # e.g. ["bath", "haircut"]
-    pets_supported: list[str]  # e.g. ["dog", "cat"]
-    price_min: int
-    price_max: int
-    experience_years: int = 0
+    groomer_type: str                                                   # "freelancer" or "company"
+    services: list[str] = Field(min_length=1, max_length=20)           # e.g. ["bath", "haircut"]
+    pets_supported: list[str] = Field(min_length=1, max_length=20)     # e.g. ["dog", "cat"]
+    price_min: int = Field(ge=0)
+    price_max: int = Field(ge=0)
+    experience_years: int = Field(default=0, ge=0)
 
     @field_validator("password")
     @classmethod

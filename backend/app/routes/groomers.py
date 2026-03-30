@@ -1,5 +1,7 @@
 import re
 
+from typing import Literal
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -16,10 +18,10 @@ router = APIRouter(prefix="/groomers", tags=["Groomers"])
 def list_groomers(
     # --- filters ---
     pet_type: str | None = Query(None, description="Filter by pet, e.g. 'dog'"),
-    max_price: int | None = Query(None, description="Only groomers whose price_min <= this value"),
-    min_experience: int | None = Query(None, description="Minimum years of experience"),
+    max_price: int | None = Query(None, ge=0, description="Only groomers whose price_min <= this value"),
+    min_experience: int | None = Query(None, ge=0, description="Minimum years of experience"),
     # --- sorting ---
-    sort_by: str = Query("price", description="Sort by: 'price' or 'experience'"),
+    sort_by: Literal["price", "experience"] = Query("price", description="Sort by: 'price' or 'experience'"),
     # --- pagination ---
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),

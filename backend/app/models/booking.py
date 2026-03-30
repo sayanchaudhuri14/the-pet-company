@@ -1,5 +1,5 @@
 import enum
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
@@ -26,7 +26,7 @@ class Booking(Base):
     scheduled_at = Column(DateTime, nullable=False)  # requested date/time
 
     status = Column(Enum(BookingStatus), default=BookingStatus.pending, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     # Relationships
     customer = relationship("CustomerProfile", back_populates="bookings")

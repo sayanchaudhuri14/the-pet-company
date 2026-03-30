@@ -1,15 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 
 from app.database import engine, Base
 import app.models  # noqa: F401 — ensures all models are registered with Base
 from app.routes import auth, groomers, bookings
 from app.core.config import settings
-
-limiter = Limiter(key_func=get_remote_address)
+from app.core.limiter import limiter  # shared singleton used by all route modules
 
 app = FastAPI(title="ThePetCompany API", version="0.1.0")
 app.state.limiter = limiter

@@ -122,7 +122,7 @@ def update_booking_status(
     db: Session = Depends(get_db),
 ):
     """Groomer accepts or rejects a pending booking."""
-    booking = db.query(Booking).filter(Booking.id == booking_id).first()
+    booking = db.query(Booking).filter(Booking.id == booking_id).with_for_update().first()
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
 

@@ -1,6 +1,10 @@
+import structlog
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+
+log = structlog.get_logger(__name__)
 
 from app.database import get_db
 from app.models.user import User, UserRole
@@ -91,11 +95,13 @@ def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)
     user = db.query(User).filter(User.email == payload.email).first()
 
     if not user or not verify_password(payload.password, user.hashed_password):
+        log.warning("auth.login.failure", email=payload.email)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
 
+    log.info("auth.login.success", user_id=user.id, role=user.role)
     token = create_access_token({"sub": str(user.id), "role": user.role})
     return TokenResponse(access_token=token)
 

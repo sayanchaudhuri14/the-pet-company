@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-from app.database import engine, Base
+from app.database import Base
 import app.models  # noqa: F401 — ensures all models are registered with Base
 from app.routes import auth, groomers, bookings
 from app.core.config import settings
@@ -46,11 +46,6 @@ app.include_router(auth.router)
 app.include_router(groomers.router)
 app.include_router(bookings.router)
 
-
-@app.on_event("startup")
-def create_tables():
-    """Create all database tables on startup if they don't exist."""
-    Base.metadata.create_all(bind=engine)
 
 
 @app.get("/")

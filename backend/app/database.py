@@ -1,14 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
-# SQLite database stored in the backend folder
-DATABASE_URL = "sqlite:///./petcompany.db"
+from app.core.config import settings
 
-# connect_args is SQLite-specific: allows multiple threads to use the same connection
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False},
-)
+# Build engine kwargs: SQLite requires check_same_thread=False; other DBs don't
+_connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
+
+engine = create_engine(settings.DATABASE_URL, connect_args=_connect_args)
 
 # Each request gets its own session, closed when the request ends
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

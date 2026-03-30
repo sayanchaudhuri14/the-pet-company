@@ -1,5 +1,5 @@
 import enum
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Column, Integer, String, Enum, DateTime
 from sqlalchemy.orm import relationship
@@ -19,7 +19,7 @@ class User(Base):
     email = Column(String, unique=True, nullable=False, index=True)
     hashed_password = Column(String, nullable=False)
     role = Column(Enum(UserRole), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     # One-to-one relationships (populated lazily)
     groomer_profile = relationship("GroomerProfile", back_populates="user", uselist=False)

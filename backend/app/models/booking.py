@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime
+from sqlalchemy import Column, Index, Integer, String, Enum, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -27,6 +27,12 @@ class Booking(Base):
 
     status = Column(Enum(BookingStatus), default=BookingStatus.pending, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    __table_args__ = (
+        Index("ix_booking_customer_id", "customer_id"),
+        Index("ix_booking_groomer_id", "groomer_id"),
+        Index("ix_booking_status", "status"),
+    )
 
     # Relationships
     customer = relationship("CustomerProfile", back_populates="bookings")

@@ -1,6 +1,6 @@
 import enum
 
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey, JSON, Boolean
+from sqlalchemy import Column, Index, Integer, String, Enum, ForeignKey, JSON, Boolean
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -31,6 +31,10 @@ class GroomerProfile(Base):
     experience_years = Column(Integer, nullable=False, default=0)
 
     is_active = Column(Boolean, default=True, nullable=False)
+
+    __table_args__ = (
+        Index("ix_groomer_city", "city"),
+    )
 
     # Relationships
     user = relationship("User", back_populates="groomer_profile")

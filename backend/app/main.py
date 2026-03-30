@@ -1,19 +1,22 @@
 import logging
 import traceback
 
+import structlog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-logger = logging.getLogger(__name__)
-
 from app.database import engine, Base
 import app.models  # noqa: F401 — ensures all models are registered with Base
 from app.routes import auth, groomers, bookings
 from app.core.config import settings
 from app.core.limiter import limiter  # shared singleton used by all route modules
+from app.core.logging_config import configure_logging
+
+configure_logging()
+logger = structlog.get_logger(__name__)
 
 app = FastAPI(title="ThePetCompany API", version="0.1.0")
 app.state.limiter = limiter

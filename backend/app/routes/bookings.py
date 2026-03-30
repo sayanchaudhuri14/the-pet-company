@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -59,6 +59,8 @@ def create_booking(
 
 @router.get("/mine", response_model=list[BookingResponse])
 def get_my_bookings(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -77,6 +79,8 @@ def get_my_bookings(
             db.query(Booking)
             .filter(Booking.customer_id == customer.id)
             .order_by(Booking.created_at.desc())
+            .offset(skip)
+            .limit(limit)
             .all()
         )
     else:
@@ -89,6 +93,8 @@ def get_my_bookings(
             db.query(Booking)
             .filter(Booking.groomer_id == groomer.id)
             .order_by(Booking.created_at.desc())
+            .offset(skip)
+            .limit(limit)
             .all()
         )
 

@@ -4,6 +4,7 @@
 *.db-wal
 .env
 .env.*
+!.env.example
 
 # Claude memory (local only)
 .claude/
